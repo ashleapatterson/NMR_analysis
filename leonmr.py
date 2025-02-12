@@ -9,35 +9,35 @@ from matplotlib.ticker import FormatStrFormatter
 import scipy.optimize
 from scipy.interpolate import CubicSpline
 from sklearn.metrics import r2_score
+from lmfit import Model, Parameters, fit_report
 
 # Plot parameters
 fsize = 28
 params = {'legend.fontsize': 'large',
-        # 'figure.figsize': (15,18),
-        'font.family': 'Lucida Grande',
+        'font.family': 'Tahoma',
         'font.weight': 'bold',
         'axes.labelsize': fsize,
         'axes.titlesize': fsize,
-        'xtick.labelsize': fsize*0.8,
+        'xtick.labelsize': fsize,
         'xtick.major.width': 2,
         'xtick.major.size': 10,
         'xtick.minor.visible': True,
         'xtick.minor.width': 1.5,
         'xtick.minor.size': 5,
-        'ytick.labelsize': fsize*0.8,
+        'ytick.labelsize': fsize,
         'ytick.major.width': 2,
         'ytick.major.size': 10,
         'ytick.minor.visible': True,
         'ytick.minor.width': 1.5,
         'ytick.minor.size': 5,
-        'axes.labelweight': 'bold',
+        'axes.labelweight': 'normal',
         'axes.linewidth': 2,
         'axes.titlepad': 25}
 plt.rcParams.update(params)
 
-def NUC_label(NUC, alt_label = 'off', x_unit='ppm'):
+def NUC_label(NUC, alt_label = 'on', x_unit='ppm'):
     """
-    labeltext = NUC_label(NUC, mum_mode = 'off', x_unit='ppm')
+    labeltext = NUC_label(NUC, alt_label = 'on', x_unit='ppm')
 
     NUC: Input of nuclide as '#X', e.g., '17O', '27Al'. Should read from Bruker input.
     mum_mode: 'on' or 'off'. Formatting to a different preference. Default = 'off'.
@@ -54,9 +54,6 @@ def NUC_label(NUC, alt_label = 'off', x_unit='ppm'):
     return labeltext
 
 def NMR1Dimport(datapath, procno=1, mass=1, f1p=0, f2p=0):
-    import os
-    import numpy as np
-    from pathlib import Path
 
     """
     results = NMR1Dimport(datapath, procno=1, mass=1, f1p=0, f2p=0)
@@ -183,9 +180,9 @@ def NMR1Dimport(datapath, procno=1, mass=1, f1p=0, f2p=0):
 
     return results
 
-def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwidth=3.375, plheight=3.375, normalize=False, yOffset = 0.2, font='Tahoma', fontsize=12, frame=True, mum_mode='off', x_unit = 'ppm', output_format = '', linewidth=2, tickdir = 'default', field='', magrange=[0,0], mag=16):
+def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwidth=8, plheight=8, normalize=False, yOffset = 0.2, font='Tahoma', fontsize=24, frame=True, mum_mode='off', x_unit = 'ppm', output_format = '', linewidth=2, tickdir = 'default', field='', magrange=[0,0], mag=16):
     """
-    fig,ax = NMR1Dplot(datapaths, mass=[1], color = 'black', f1p=0, f2p=0, plwidth=3.375, plheight=3.375,normalize=False, yOffset = 0.2, font='Tahoma', fontsize=12, frame=True, mum_mode='off', x_unit = 'ppm', output_format = "manuscript", tickdir = 'in', field='')
+    fig,ax = NMR1Dplot(datapaths, mass=[1], color = 'black', f1p=0, f2p=0, plwidth=8, plheight=8,normalize=False, yOffset = 0.2, font='Tahoma', fontsize=24, frame=True, mum_mode='off', x_unit = 'ppm', output_format = "manuscript", tickdir = 'in', field='')
     
     Function to read and plot Bruker 1D NMR files from their experiment folder paths, fed in as a single string or list.
 
@@ -217,7 +214,6 @@ def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwi
     import matplotlib.pyplot as plt
     import matplotlib.colors as cl
     import matplotlib.cm as cmx
-    import numpy as np
 
     if isinstance(datapaths, str):
         datapaths = [datapaths]
@@ -344,7 +340,6 @@ def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwi
 
         plt.plot(x,y+yBase,color=scalarMap.to_rgba(values[cnt]),linewidth=linewidth)
         if magrange != [0,0]:
-            print(magrange[0])
             xlowi = np.argmax(x<magrange[0])
             xhighi = np.argmax(x<magrange[1])
             if xlowi>xhighi:
@@ -374,13 +369,13 @@ def dmfit(datapath,
     f1p = 0,
     f2p = 0,
     alpha = 0.4,
-    plheight = 3.375,
-    plwidth = 3.375,
-    fontsize = 12,
+    plheight = 8,
+    plwidth = 8,
+    fontsize = 24,
     output_format = '',
     font = 'Tahoma',
     tickdir = 'in',
-    mum_mode='off', 
+    alt_label='on', 
     x_unit='ppm'):
 
     """
@@ -394,12 +389,12 @@ def dmfit(datapath,
     -color: 'black', 'diverging', 'hotcold, 'coldhot', or 'gradient', for the respective color schemes, more can be added as desired
     -f2p: int or float, first edge limit
     -f2p: int or float, second edge limit (agnostic to the order of f1p and f2p)
-    -plwidth: int or float, plot width, default = 3.375
-    -plheight: int or float, plot height, default = 3.375
-    -font: string, typeface for plot, default = 'Helvetica'
-    -fontsize: int or float, font size, default = 12
+    -plwidth: int or float, plot width, default = 8
+    -plheight: int or float, plot height, default = 8
+    -font: string, typeface for plot, default = 'Tahoma'
+    -fontsize: int or float, font size, default = 24
     -frame: Boolean value, toggles plot frame, default = True
-    -mum_mode: 'on' or 'off', if you know, you know..., default = 'off'
+    -alt_label: 'on' or 'off', default = 'on'
     -x_unit: 'ppm' or 'Hz', toggles x-axis units between ppm and Hz, default = 'ppm'
     -output_format: 'default', 'manuscript', or 'presentation', sets some premade plot parameters, will override fontsize, plheight, and plwidth parameters, default = 'default'
     
@@ -505,7 +500,7 @@ def dmfit(datapath,
     edgecolours = scalarMap.to_rgba(values)
     facecolours[:,3] = alpha
 
-    labeltext = NUC_label(nuc, mum_mode=mum_mode, x_unit=x_unit)
+    labeltext = NUC_label(nuc, alt_label=alt_label, x_unit=x_unit)
     lw=2
     fig,ax=plt.subplots()
     plt.plot(x,spectrum,'k',linewidth=lw*2, zorder=0)
@@ -531,9 +526,9 @@ def dmfit(datapath,
 
     return fig, ax
 
-def NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels = 6, colour=True, homonuclear=False, plheight =12, plwidth = 12):
+def NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels = 6, colour=True, homonuclear=False, plheight = 8, plwidth = 8):
     """
-    fig, ax, 2d_spectrum = NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels = 6, homonuclear=False, plheight =12, plwidth = 12)
+    fig, ax, 2d_spectrum = NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels = 6, homonuclear=False, plheight = 8, plwidth = 8)
     
     Function to plot 2D NMR data from raw Bruker files. 1D data are projections along each axis by summation over each dimension.
     May update for optional external projections.
@@ -733,7 +728,6 @@ def NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels
     ymax = true_centre_2+SW_2/2
     yAxHz = np.linspace(ymax,ymin,num=int(SI_2))
     yAxppm = yAxHz/SF_2
-    # print(true_centre,true_centre_2)
     ####################################
     # Index limits of plot
     f2l_temp = max(xAxppm)
@@ -748,18 +742,14 @@ def NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels
 
     xlow = np.argmax(xAxppm<f2l)
     xhigh = np.argmax(xAxppm<f2r)
-    # print(xlow,xhigh)
     ylow = np.argmax(yAxppm<f1l)
     yhigh = np.argmax(yAxppm<f1r)
-    # print(ylow,yhigh)
 
     if xlow>xhigh:
         xlow, xhigh = xhigh, xlow
-    # print(xlow,xhigh)
 
     if ylow>yhigh:
         ylow, yhigh = yhigh, ylow
-    # print(ylow,yhigh)
 
     if xlow == 0:
         xlow = np.argmax(xAxppm==f2l_temp)
@@ -796,7 +786,6 @@ def NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels
         real_spectrum_2d = np.vstack([np.hstack([np.reshape(c, (XDIM_F1, XDIM_F2)) for c in b]) for b in blocks])  # Concatenate submatrices in the correct orientation
 
     real_spectrum_2d = real_spectrum_2d[ylow:yhigh,xlow:xhigh]
-    print(xlow,xhigh,ylow,yhigh)
     Threshmin = factor*np.amax(real_spectrum_2d)
     Threshmax = np.amax(real_spectrum_2d)
     cc2 = np.linspace(1,clevels,clevels)
@@ -829,9 +818,6 @@ def NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels
         else:
             plt.xlim(f2l,f2r)
 
-    # # ax.spines[['top','right','left']].set_visible(frame)
-    # # plt.yticks([])
-
     ax.invert_xaxis()
     ax.invert_yaxis()
     ax.yaxis.set_label_position("right")
@@ -861,23 +847,21 @@ def NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels
     ax_f1.spines['top'].set_visible(frame)
     ax_f2.yaxis.set_ticklabels([])
     ax_f1.xaxis.set_ticklabels([])
-    # ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-    # ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
     fig.set_figheight(plheight)
     fig.set_figwidth(plwidth)
 
-            
-    # ax_f2.xaxis.set_tick_params(labelleft=False)
-    # ax_f1.yaxis.set_tick_params(labelbottom=False)
-    # ax_f1.spines[['top','right','left','bottom']].set_visible(frame)
-    # ax_f1.yaxis.yticks([])
-
     plt.tight_layout()
-    # plt.show()
     ####################################
     return fig, ax, real_spectrum_2d
 
-def find_gamma(isotope):
+def find_gamma(isotope, field = '', SFO1=''):
+    """
+    results = find_gamma(isotope, field = '', SFO1='')
+
+    isotope: Input of nuclide as '#X', e.g., '17O', '27Al'. Read from Bruker input as NUC = results['nuclide'].
+    field: '' or '100'. Set to '100' to search for actual nuclide from 100 MHz data. (Converts from 500 MHz equivalent).
+    SFO1: Transmitter frequency. Read from Bruker input as SFO1 = results['SFO1'].
+    """
     gammalist = [
         ['Name', 'Nuclide', 'Spin', 'Magnetic Moment', 'Gyromagnetic Ratio (MHz/T)', 'Quadrupole Moment (fm^2)'],
         ['Hydrogen', '1H', '0.5', '4.83735', '42.57746460132430', '---'],
@@ -1011,9 +995,19 @@ def find_gamma(isotope):
     else:
         print("Isotope string not recognised, please input a string of format e.g., '1H' or '27Al' and ensure it is an NMR active nuclide.")
         return
-    
+    if field=='100':
+        gamma=abs(gamma/1000000)
+        field_strength = 11.75
+        freqactual = SFO1/(field_strength/5)
+        gamma=abs(gamma/1000000)
+        sortdf = df.sort_values("Gyromagnetic Ratio (MHz/T)")
+        df_closest = sortdf.iloc[(sortdf['Gyromagnetic Ratio (MHz/T)'].astype(float)-freqactual).abs().argsort()[:1]]
+        
+        gamma = df_closest["Gyromagnetic Ratio (MHz/T)"].iloc[0]
+        isotope = str(df_closest["Nuclide"].iloc[0])
+    results = {'Nuclide':isotope,'gamma':gamma}
 
-    return gamma
+    return results
 
 def sim_diffusion(NUC, delta = 1, DELTA = 20, maxgrad = 17, D = 0):
     """
@@ -1063,7 +1057,7 @@ def sim_diffusion(NUC, delta = 1, DELTA = 20, maxgrad = 17, D = 0):
     return fig,ax
 
 def xf2(datapath, procno=1, mass=1, f2l=10, f2r=0):
-    """xAxppm, real_spectrum, expt_parameters = xf2(datapath, procno=1, mass=1, f2l=10, f2r=0)
+    """results = xf2(datapath, procno=1, mass=1, f2l=10, f2r=0)
     """
     real_spectrum_path = os.path.join(datapath,"pdata",str(procno),"2rr")
     procs = os.path.join(datapath,"pdata",str(procno),"procs")
@@ -1272,9 +1266,9 @@ def xf2(datapath, procno=1, mass=1, f2l=10, f2r=0):
     real_spectrum = real_spectrum[:int(SI_2),xlow:xhigh]
     # real_spectrum = real_spectrum[:,xlow:xhigh]
 
-    expt_parameters = {'NUC': NUC, "L1": L1, "CNST31": CNST31, "TD_2": TD_2}
+    expt_parameters = {'x_axis': xAxppm, 'spectrum':real_spectrum, 'NUC': NUC, "L1": L1, "CNST31": CNST31, "TD_2": TD_2}
     
-    return xAxppm, real_spectrum, expt_parameters
+    return expt_parameters
 
 def diff_params_import(datapath, NUC):
     """
@@ -1356,18 +1350,6 @@ def xf2_peak_pick(xAxppm, real_spectrum, prominence = [0.001, 1], peak_pos = flo
     # display(peak_intensity)
     
     return peak_ints_norm
-
-def T2_plot(peak_ints_norm, L1, CNST31):
-    """
-    T2 plotting function, uses data read from the xf2 function
-    T2_plot(peak_ints_norm, L1, CNST31)
-    """
-    echo_delay = np.arange((2*L1/CNST31),(2*((L1)+(L2*(len(real_spectrum[:,0]))))/CNST31),2*L2/CNST31)
-    echo_delay *= 1000 # unit [=] ms
-    fig2,ax2 = plt.subplots()
-    lines = plt.plot(echo_delay,peak_ints_norm)
-    ax2.set_xlabel("Echo delay / ms")
-    ax2.set_ylabel("Normalized Intensity")
     
 def diff_plot(peak_ints_norm, datapath, NUC):
     """
@@ -1383,105 +1365,92 @@ def diff_plot(peak_ints_norm, datapath, NUC):
     grad_params = {"delta": delta, "DELTA": DELTA, "gamma": gamma, "expD":expD}
     return G, grad_params
 
-def T2_Fit(x, y, t0=0.5,c0=1,beta0=0.5,showall=False,fittype = "default"):
-    
-    def monoExp_t(x, t):
-        result=[]
-        for i in x:
-            result.append(np.exp(-(1/t) * i))
-        return result
-
-    def doubleExp(x, m1, t1,t2):
-        result=[]
-        for i in x:
-            result.append(m1*np.exp(-(1/t1) * i)+(1-m1)*np.exp(-(1/t2) * i))
-            # result.append(m1*np.exp(-(1/t1) * i)+m2*np.exp(-(1/t2) * i))
+def T2_Fit(y, exp_params, stretch = False, biexp = False):
+        """
+        results = T2_Fit(y, exp_params, stretch = False, biexp = False)
+        results = {"w1":w1, "T2_1":T2_1, "beta_1":beta1}
+        or
+        results = {"w1":w1, "T2_1":T2_1, "beta_1":beta1, "w2":w2, "T2_2":T2_2, "beta_2":beta2}
+        depending on whether mono-exponential or bi-exponential fit was used.
+        """
         
+    L1 = exp_params["L1"]
+    L2 = exp_params["L2"]
+    TD2 = exp_params["TD_2"]
+    CNST31 = exp_params["CNST31"]
+    echo_delay = np.arange((2*L1/CNST31),(2*((L1)+(L2*(TD2)))/CNST31),2*L2/CNST31) # echo delay [µs]
+    echo_delay *= 1000 # unit [=] ms
+
+    expT2_1 = 0.1*max(echo_delay)
+    expT2_2 = 0.05*max(echo_delay)
+    def T2_decay(echo_delay, I01, I02, T2_1, T2_2, beta1, beta2):
+        result1 = I01 * np.exp(-1 * np.divide(echo_delay,T2_1)**beta1)
+        result2 = 0
+        if biexp:
+            result2 = I02 * np.exp(-1 * np.divide(echo_delay,T2_2)**beta2)
+        result = result1+result2
         return result
 
-    def stretchExp(x, t, beta):
-        result=[]
-        for i in x:
-            result.append(np.exp(-(i/t)))#**beta))
-        return result
-    
-    method_str = ["Mono-exponential", "Bi-exponential", "Stretched Exponential"]
+    fmodel = Model(T2_decay)
 
-    
-    params, cv = scipy.optimize.curve_fit(monoExp_t, x, y, t0)
-    mono_t = params
-    monoT2 = monoExp_t(x,mono_t)
-    R_sq_Mono = r2_score(y, monoT2) 
-
-    param_bounds2 = ([0,0,0],[1,1000000,1000000])
-    p0bi = (0.5,t0,t0) # start with values near those we expect
-    params, cv = scipy.optimize.curve_fit(doubleExp, x, y, p0bi,bounds=param_bounds2)
-    m1,t1,t2 = params
-    biexpT2 = doubleExp(x,m1,t1,t2)
-    R_sq_Bi = r2_score(y, biexpT2)
-    m2=1-m1
-
-    p0str = (t0, beta0) # start with values near those we expect --> c is near 1, T2 is close to to 4ms, use a beta of 0.5
-    params, cv = scipy.optimize.curve_fit(stretchExp, x, y, p0str,maxfev=1000)
-    str_t, beta = params
-    stretchT2 = stretchExp(x,str_t,beta)
-    R_sq_Stretch = r2_score(y, stretchT2)
-
-    All_R = [R_sq_Mono, R_sq_Bi, R_sq_Stretch]
-    fit_types = ["Mono-exponential", "Bi-exponential", "Stretched exponential"]
-    R_max = max(All_R)
-    method_choice = All_R.index(R_max)
-    if fittype != "default":
-        method_choice = fit_types.index(fittype)
-    # print(All_R, method_choice)
-    
-    if fittype == "default":
-        if method_choice == 0:
-            YY = monoT2
-            
-        elif method_choice == 1:
-            YY = biexpT2
-            
-        elif method_choice == 2:
-            YY = stretchT2
+    # Building model parameters
+    params = Parameters()
+    params.add("T2_1", min = expT2_1/50, max = expT2_1*50, value = expT2_1)
+    if biexp:
+        params.add("T2_2", min = expT2_2/50, max = expT2_2*50, value = expT2_2)
     else:
-        if method_choice == 0:
-            YY = monoT2
-        elif method_choice == 1:
-            YY = biexpT2
-        elif method_choice == 2:
-            YY = stretchT2
-
-    if YY == monoT2:
-        txt_disp = f'T$_2$ = {round(float(mono_t),6)}'
-    elif YY == biexpT2:
-        txt_disp = f'Component 1: T$_2$ = {round(t1,6)} ms, w = {round(m1,3)}\nComponent 2: T$_2$ = {round(t2,6)} ms, w = {round(m2,3)}'
-    elif YY == stretchT2:
-        txt_disp = f'T$_2$ = {round(str_t,6)} ms\nβ = {round(beta,3)}'#\nc = {round(c,3)}'
+        params.add("T2_2", value = expT2_2, vary = False)
     
+    if biexp:
+        params.add("I01", min = 0.0, max = 1.5, value = 0.5)
+        params.add("I02", min = 0.0, max = 1.5, value = 0.5)
+    else:
+        params.add("I01", min = 0.0, max = 1.5, value = 1.0, vary = True)
+        params.add("I02", value = 0.0, vary = False)
+        print("Proceeding with one parameter fitting.")
+
+    if biexp:
+        params.add("beta1", min=1e-9, max=5.0, value=1.0, vary=stretch)
+        params.add("beta2", min=1e-9, max=5.0, value=1.0, vary=stretch)
+    else:
+        params.add("beta1", min=1e-9, max=5.0, value=1.0, vary=stretch)
+        params.add("beta2", value=1.0, vary=False)
+
+    # Run Model
+    T2_decay_fit = fmodel.fit(y,params,echo_delay=echo_delay)
+    # DiffBiExpFit = fmodel.fit(y,params,B=B, weights=np.divide(y,1), scale_covar=True)
+    y_interp = T2_decay_fit.model.func(echo_delay, **T2_decay_fit.best_values)
+    model_fits = T2_decay_fit.fit_report()
+    
+    T2_1 = T2_decay_fit.best_values["T2_1"]
+    T2_2 = T2_decay_fit.best_values["T2_2"]
+    I01 = T2_decay_fit.best_values["I01"]
+    I02 = T2_decay_fit.best_values["I02"]
+    w1 = I01/(I01+I02)
+    w2 = I02/(I01+I02)
+    beta1 = T2_decay_fit.best_values["beta1"]
+    beta2 = T2_decay_fit.best_values["beta2"]
+    summary = T2_decay_fit.summary()
+    r2 = summary["rsquared"]
+    chisqr = summary["chisqr"]
+
     fig,ax = plt.subplots()
 
-    if showall:
-        plt.plot(x, y, 'o', color='black', label="Experimental Data")
-        plt.plot(x, monoT2, '--', color='teal', label=method_str[0]+" fit")
-        plt.plot(x, biexpT2, '-.', color='orange', label=method_str[1]+" fit")
-        plt.plot(x, stretchT2, ':', color='green', label=method_str[2]+" fit")
-        plt.xlabel('Echo delay / ms')
-        plt.ylabel('Normalized intensity')
-        plt.legend(loc="right")
-        plt.show()
-    else:
-        plt.plot(x, y, 'o', color='blue', label="Experimental Data")
-        plt.plot(x, YY, '--', color='red', label=method_str[method_choice]+" fit")
-        plt.xlabel('Echo delay / ms')
-        plt.ylabel('Normalized intensity')
-        plt.text(0.95,0.95,txt_disp, transform=ax.transAxes, ha="right",va="top")
-        plt.legend(loc="right")
-        plt.ylim(-0.05, max(y)*1.1)
-        plt.show()
+    ax.plot(echo_delay, y, 'o', color='black', label="Experimental Data")
+    ax.plot(echo_delay, y_interp, '--', color='teal', label="Fit")
+    ax.set_xlabel('Echo delay / ms')
+    ax.set_ylabel('Normalized intensity')
+    ax.legend(loc="right")
+    plt.show()
     
-    display(f"R² = {R_max}")
-    return
+    if not(biexp):
+        display("T2_1 = "+str(T2_1)+" ms","beta = "+str(beta1))
+        results = {"T2":T2_1, "beta":beta1}
+    else:
+        display("w1 = "+str(w1), "T2_1 = "+str(T2_1)+" ms","beta = "+str(beta1))
+        display("w2 = "+str(w2), "T2_2 = "+str(T2_2)+" ms","beta = "+str(beta2))
+        results = {"w1":w1, "T2_1":T2_1, "beta_1":beta1, "w2":w2, "T2_2":T2_2, "beta_2":beta2}
+    return results
 
 def diffprof(datapath, procno=1, mass=1, x1=0, x2=0, probe='diffBB', GPZ = [], plheight=8, plwidth=8):
 
