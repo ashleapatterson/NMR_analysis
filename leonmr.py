@@ -1366,13 +1366,13 @@ def diff_plot(peak_ints_norm, datapath, NUC):
     return G, grad_params
 
 def T2_Fit(y, exp_params, stretch = False, biexp = False):
-        """
-        results = T2_Fit(y, exp_params, stretch = False, biexp = False)
-        results = {"w1":w1, "T2_1":T2_1, "beta_1":beta1}
-        or
-        results = {"w1":w1, "T2_1":T2_1, "beta_1":beta1, "w2":w2, "T2_2":T2_2, "beta_2":beta2}
-        depending on whether mono-exponential or bi-exponential fit was used.
-        """
+    """
+    results = T2_Fit(y, exp_params, stretch = False, biexp = False)
+    results = {"w1":w1, "T2_1":T2_1, "beta_1":beta1}
+    or
+    results = {"w1":w1, "T2_1":T2_1, "beta_1":beta1, "w2":w2, "T2_2":T2_2, "beta_2":beta2}
+    depending on whether mono-exponential or bi-exponential fit was used.
+    """
         
     L1 = exp_params["L1"]
     L2 = exp_params["L2"]
