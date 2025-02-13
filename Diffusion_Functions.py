@@ -92,7 +92,7 @@ def xf2(datapath, procno=1, mass=1, f2l=10, f2r=0):
                 OBS = float(linestr[len(OBSstr):len(linestr)-1])
             if NUCstr in line.decode():
                 linestr = line.decode()
-                NUC = str(linestr[len(NUCstr):len(linestr)-2])
+                NUC = linestr.split('= <')[1].split('>')[0]
             if TDstr in line.decode():
                 linestr = line.decode()
                 TD = float(linestr.strip(TDstr))
@@ -174,7 +174,7 @@ def xf2(datapath, procno=1, mass=1, f2l=10, f2r=0):
                 OBS_2 = float(linestr[len(OBSstr_2):len(linestr)-1])
             if NUCstr_2 in line.decode():
                 linestr = line.decode()
-                NUC_2 = str(linestr[len(NUCstr_2):len(linestr)-2])
+                NUC_2 = linestr.split('= <')[1].split('>')[0]
             if TDstr_2 in line.decode():
                 linestr = line.decode()
                 TD_2  = float(linestr.strip(TDstr_2))
@@ -1033,7 +1033,7 @@ def eNMR_xf2(datapath, procno=1):
                 OBS = float(linestr[len(OBSstr):len(linestr)-1])
             if NUCstr in line.decode():
                 linestr = line.decode()
-                NUC = str(linestr[len(NUCstr):len(linestr)-2])
+                NUC = linestr.split('= <')[1].split('>')[0]
             if TDstr in line.decode():
                 linestr = line.decode()
                 TD = float(linestr.strip(TDstr))
@@ -1115,7 +1115,7 @@ def eNMR_xf2(datapath, procno=1):
                 OBS_2 = float(linestr[len(OBSstr_2):len(linestr)-1])
             if NUCstr_2 in line.decode():
                 linestr = line.decode()
-                NUC_2 = str(linestr[len(NUCstr_2):len(linestr)-2])
+                NUC_2 = linestr.split('= <')[1].split('>')[0]
             if TDstr_2 in line.decode():
                 linestr = line.decode()
                 TD_2  = float(linestr.strip(TDstr_2))
