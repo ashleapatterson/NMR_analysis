@@ -40,7 +40,7 @@ def NUC_label(NUC, alt_label = 'on', x_unit='ppm'):
     labeltext = NUC_label(NUC, alt_label = 'on', x_unit='ppm')
 
     NUC: Input of nuclide as '#X', e.g., '17O', '27Al'. Should read from Bruker input.
-    mum_mode: 'on' or 'off'. Formatting to a different preference. Default = 'off'.
+    alt_label: 'on' or 'off'. Formatting to a different preference. Default = 'off'.
     x_unit: 'ppm' or 'Hz'. Assigns the x unit for the plot. Default = 'ppm'.
     """
     # Determine axis label values
@@ -180,9 +180,9 @@ def NMR1Dimport(datapath, procno=1, mass=1, f1p=0, f2p=0):
 
     return results
 
-def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwidth=8, plheight=8, normalize=False, yOffset = 0.2, font='Tahoma', fontsize=24, frame=True, mum_mode='off', x_unit = 'ppm', output_format = '', linewidth=2, tickdir = 'default', field='', magrange=[0,0], mag=16):
+def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwidth=8, plheight=8, normalize=False, yOffset = 0.2, font='Tahoma', fontsize=24, frame=True, alt_label='off', x_unit = 'ppm', output_format = '', linewidth=2, tickdir = 'default', field='', magrange=[0,0], mag=16):
     """
-    fig,ax = NMR1Dplot(datapaths, mass=[1], color = 'black', f1p=0, f2p=0, plwidth=8, plheight=8,normalize=False, yOffset = 0.2, font='Tahoma', fontsize=24, frame=True, mum_mode='off', x_unit = 'ppm', output_format = "manuscript", tickdir = 'in', field='')
+    fig,ax = NMR1Dplot(datapaths, mass=[1], color = 'black', f1p=0, f2p=0, plwidth=8, plheight=8,normalize=False, yOffset = 0.2, font='Tahoma', fontsize=24, frame=True, alt_label='off', x_unit = 'ppm', output_format = "manuscript", tickdir = 'in', field='')
     
     Function to read and plot Bruker 1D NMR files from their experiment folder paths, fed in as a single string or list.
 
@@ -201,7 +201,7 @@ def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwi
     -font: string, typeface for plot, default = 'Helvetica'
     -fontsize: int or float, font size, default = 12
     -frame: Boolean value, toggles plot frame, default = True
-    -mum_mode: 'on' or 'off', if you know, you know..., default = 'off'
+    -alt_label: 'on' or 'off', if you know, you know..., default = 'off'
     -x_unit: 'ppm' or 'Hz', toggles x-axis units between ppm and Hz, default = 'ppm'
     -output_format: 'default', 'manuscript', or 'presentation', sets some premade plot parameters, will override fontsize, plheight, and plwidth parameters, default = 'default'
     -field: '' or '100'. If '100' is input, the appropriate nuclide will be determined and set
@@ -336,7 +336,7 @@ def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwi
         nucgamma = find_gamma(NUC, field=field, SFO1=SFO1)
         NUC = nucgamma['Nuclide']
 
-        labeltext = NUC_label(NUC, mum_mode=mum_mode, x_unit=x_unit)
+        labeltext = NUC_label(NUC, alt_label=alt_label, x_unit=x_unit)
 
         plt.plot(x,y+yBase,color=scalarMap.to_rgba(values[cnt]),linewidth=linewidth)
         if magrange != [0,0]:
@@ -379,7 +379,7 @@ def dmfit(datapath,
     x_unit='ppm'):
 
     """
-    fig,ax = dmfdit(datapath, color = 'diverging', xmin=0, xmax=0, plwidth=3.375, plheight=3.375, font='Tahoma', fontsize=12, frame=True, mum_mode='off', x_unit = 'ppm', output_format = '', tickdir = 'in')
+    fig,ax = dmfdit(datapath, color = 'diverging', xmin=0, xmax=0, plwidth=3.375, plheight=3.375, font='Tahoma', fontsize=12, frame=True, alt_label='off', x_unit = 'ppm', output_format = '', tickdir = 'in')
     
     Function to read and plot DMFit NMR files from the .asc file exported by DMFit, default name: "1r spec and model all lines.asc"
 
