@@ -154,8 +154,8 @@ def NMR1Dimport(datapath, procno=1, mass=1, f1p=0, f2p=0):
     xlow, xhigh = min(xAxppm), max(xAxppm)
 
     if f1p == 0 and f2p == 0:
-        xlowi = np.argmax(xAxppm<xlow)
-        xhighi = np.argmax(xAxppm<xhigh)
+        xlowi = np.argmax(xAxppm==xlow)
+        xhighi = np.argmax(xAxppm==xhigh)
         if xlowi>xhighi:
             xlowi, xhighi = xhighi, xlowi
         xAxppm = xAxppm[xlowi:xhighi]
@@ -170,7 +170,7 @@ def NMR1Dimport(datapath, procno=1, mass=1, f1p=0, f2p=0):
         xAxHz = xAxHz[xlowi:xhighi]
         real_spectrum = real_spectrum[xlowi:xhighi]
         
-    real_spectrum_norm = real_spectrum
+    real_spectrum_norm = real_spectrum.copy()
     real_spectrum_norm -= min(real_spectrum_norm)
     real_spectrum_norm /= max(real_spectrum_norm)
     real_spectrum = real_spectrum/mass/NS
@@ -730,20 +730,18 @@ def NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels
     yAxppm = yAxHz/SF_2
     ####################################
     # Index limits of plot
-    f2l_temp = max(xAxppm)
-    f2r_temp = min(xAxppm)
-    f1l_temp = max(yAxppm)
-    f1r_temp = min(yAxppm)
+    if f2l == 0 and f2r == 0:
+        f2l = max(xAxppm)
+        f2r = min(xAxppm)
+    if f1l == 0 and f1r == 0:
+        f1l = max(yAxppm)
+        f1r = min(yAxppm)
 
-    if f2l<f2r:
-        f2l, f2r = f2r,f2l
-    if f1l<f1r:
-        f1l, f1r = f1r,f1l
+    xlow = np.argmax(xAxppm<=f2l)
+    xhigh = np.argmax(xAxppm<=f2r)
 
-    xlow = np.argmax(xAxppm<f2l)
-    xhigh = np.argmax(xAxppm<f2r)
-    ylow = np.argmax(yAxppm<f1l)
-    yhigh = np.argmax(yAxppm<f1r)
+    ylow = np.argmax(yAxppm<=f1l)
+    yhigh = np.argmax(yAxppm<=f1r)
 
     if xlow>xhigh:
         xlow, xhigh = xhigh, xlow
@@ -751,18 +749,8 @@ def NMR2D(datapath, procno=1, f1l=0, f1r=0, f2l=0, f2r=0, factor = 0.02, clevels
     if ylow>yhigh:
         ylow, yhigh = yhigh, ylow
 
-    if xlow == 0:
-        xlow = np.argmax(xAxppm==f2l_temp)
-    if xhigh == 0:
-        xhigh = np.argmax(xAxppm==f2r_temp)
-    if ylow == 0:
-        ylow = np.argmax(yAxppm==f1l_temp)
-    if yhigh == 0:
-        yhigh = np.argmax(yAxppm==f1r_temp)
-
     xAxppm = xAxppm[xlow:xhigh]
     yAxppm = yAxppm[ylow:yhigh]
-
 
     # Reshape 2d data to match up dimensions
     # real_spectrum = np.fromfile(real_spectrum_path, np.int32, count=-1)
@@ -1028,7 +1016,8 @@ def sim_diffusion(NUC, delta = 1, DELTA = 20, maxgrad = 17, D = 0):
     if D == 0:
         D = np.logspace(-8,-15,8)
         switch = 0
-    gamma = find_gamma(NUC)  # [10^7 1/T/s]
+    nucgamma = find_gamma(NUC, field=field, SFO1=SFO1)
+    gamma = nucgamma['gamma']
     G = np.arange(0,maxgrad+(maxgrad/100.0),maxgrad/99.0)
     B = [(2*np.pi*gamma*delta*i)**2 * (DELTA-(delta/3)) for i in G]
 
@@ -1056,7 +1045,7 @@ def sim_diffusion(NUC, delta = 1, DELTA = 20, maxgrad = 17, D = 0):
     plt.show()
     return fig,ax
 
-def xf2(datapath, procno=1, mass=1, f2l=10, f2r=0):
+def xf2(datapath, procno=1, mass=1, f2l=0, f2r=0):
     """results = xf2(datapath, procno=1, mass=1, f2l=10, f2r=0)
     """
     real_spectrum_path = os.path.join(datapath,"pdata",str(procno),"2rr")
@@ -1246,25 +1235,18 @@ def xf2(datapath, procno=1, mass=1, f2l=10, f2r=0):
         blocks = np.reshape(blocks,(submatrix_rows,submatrix_cols,-1)) # Reshape these submatrices so each has its own 1D array
         real_spectrum = np.vstack([np.hstack([np.reshape(c, (XDIM_F1, XDIM_F2)) for c in b]) for b in blocks])  # Concatenate submatrices in the correct orientation
 
-    f2l_temp = max(xAxppm)
-    f2r_temp = min(xAxppm)
+    if f2l == 0 and f2r == 0:
+        f2l = max(xAxppm)
+        f2r = min(xAxppm)
 
-    if f2l<f2r:
-        f2l, f2r = f2r,f2l
-
-    xlow = np.argmax(xAxppm<f2l)
-    xhigh = np.argmax(xAxppm<f2r)
-
-    if xlow == 0:
-        xlow = np.argmax(xAxppm==f2l_temp)
-    if xhigh == 0:
-        xhigh = np.argmax(xAxppm==f2r_temp)
+    xlow = np.argmax(xAxppm<=f2l)
+    xhigh = np.argmax(xAxppm<=f2r)
 
     if xlow>xhigh:
         xlow, xhigh = xhigh, xlow
+
     xAxppm = xAxppm[xlow:xhigh]
     real_spectrum = real_spectrum[:int(SI_2),xlow:xhigh]
-    # real_spectrum = real_spectrum[:,xlow:xhigh]
 
     expt_parameters = {'x_axis': xAxppm, 'spectrum':real_spectrum, 'NUC': NUC, "L1": L1, "CNST31": CNST31, "TD_2": TD_2}
     
@@ -1293,8 +1275,8 @@ def diff_params_import(datapath, NUC):
     Gradlist = x_values[1::4] # [G/cm]
     Gradlist = [x/100 for x in Gradlist] # [T/m]
 
-    gamma = find_gamma(NUC)  # [10^7 1/T/s]
-    # gamma = gamma  # [1/T/s]
+    nucgamma = find_gamma(NUC, field=field, SFO1=SFO1)
+    gamma = nucgamma['gamma']
 
     return delta, DELTA, exD, Gradlist, gamma
 
@@ -1558,7 +1540,8 @@ def diffprof(datapath, procno=1, mass=1, x1=0, x2=0, probe='diffBB', GPZ = [], p
             if ~np.isnan(SW) and ~np.isnan(SI) and ~np.isnan(NC_proc) and ~np.isnan(SF):
                 break
 
-    gamma = find_gamma(NUC)
+    nucgamma = find_gamma(NUC, field=field, SFO1=SFO1)
+    gamma = nucgamma['gamma']
 
     if GPZ != []:
         GPZ1 = GPZ
@@ -1577,10 +1560,10 @@ def diffprof(datapath, procno=1, mass=1, x1=0, x2=0, probe='diffBB', GPZ = [], p
         print("Using default limits.")
         x1_temp = max(xAxppm)
         x2_temp = min(xAxppm)
-        x1 = np.argmax(xAxppm<x2_temp)
-        x2 = np.argmax(xAxppm<x1_temp)
+        x1 = np.argmax(xAxppm<=x2_temp)
+        x2 = np.argmax(xAxppm<=x1_temp)
         
-    real_spectrum_norm = real_spectrum
+    real_spectrum_norm = real_spectrum.copy()
     real_spectrum_norm -= min(real_spectrum_norm)
     real_spectrum_norm /= max(real_spectrum_norm)
     real_spectrum = real_spectrum/mass/NS
@@ -1618,10 +1601,10 @@ def interpolate_y_values(x, y, x_range, num=2048):
     Returns:
         Numpy array containing the interpolated x and y values of a specific length and within the specified x range.
     """
-    spl = CubicSpline(np.flip(x), y)
+    spl = CubicSpline(np.flip(x), np.flip(y))
 
     # Interpolate y values to a finer grid within the x range
     x_interp = np.flip(np.linspace(x_range[0], x_range[1], num=num))
-    y_interp = np.flip(spl(x_interp))
+    y_interp = spl(x_interp)
 
     return x_interp,y_interp
