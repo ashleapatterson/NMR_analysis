@@ -1248,7 +1248,7 @@ def xf2(datapath, procno=1, mass=1, f2l=0, f2r=0):
     xAxppm = xAxppm[xlow:xhigh]
     real_spectrum = real_spectrum[:int(SI_2),xlow:xhigh]
 
-    expt_parameters = {'x_axis': xAxppm, 'spectrum':real_spectrum, 'NUC': NUC, "L1": L1, "CNST31": CNST31, "TD_2": TD_2}
+    expt_parameters = {"x_ppm":xAxppm, "spectrum": real_spectrum, 'NUC': NUC, "L1": L1, "L2":L2, "CNST31": CNST31, "TD_2": TD_2}
     
     return expt_parameters
 
@@ -1280,7 +1280,7 @@ def diff_params_import(datapath, NUC):
 
     return delta, DELTA, exD, Gradlist, gamma
 
-def xf2_peak_pick(xAxppm, real_spectrum, prominence = [0.001, 1], peak_pos = float("NaN")):
+def xf2_peak_pick(xAxppm, real_spectrum, prominence = [0.001, 1], peak_pos = []):
     """
     peak_ints_norm = xf2_peak_pick(xAxppm, real_spectrum, prominence = [0.001, 1], peak_pos = float("NaN"))
     peak finder from the xf2 function, if peak_pos is defined, the fit for only that x value (in ppm) will be shown.
@@ -1295,17 +1295,14 @@ def xf2_peak_pick(xAxppm, real_spectrum, prominence = [0.001, 1], peak_pos = flo
     real_spectrum = real_spectrum-min_slice_1
     real_spectrum = real_spectrum/max_slice_1
 
-    if np.isnan(peak_pos):
+    if peak_pos == []:
         pl = find_peaks(slice_1, prominence=prominence)
         pl = pl[0]
         peak_pos = xAxppm[pl]
         cols = [str(round(items,2)) for items in peak_pos]
     else:
-        pl=np.where(xAxppm<=peak_pos)[0][0]
-        cols = ['peak']
-
-    # slice_1_pl = real_spectrum[0,pl]
-    # peak_slices = real_spectrum[:,pl]
+        pl=[np.where(xAxppm<=pos)[0][0] for pos in peak_pos]
+        cols = [str(round(items,2)) for items in peak_pos]
 
     fig,ax=plt.subplots()
 
@@ -1358,10 +1355,12 @@ def T2_Fit(y, exp_params, stretch = False, biexp = False):
         
     L1 = exp_params["L1"]
     L2 = exp_params["L2"]
-    TD2 = exp_params["TD_2"]
+    TD2 = int(exp_params["TD_2"])
     CNST31 = exp_params["CNST31"]
     echo_delay = np.arange((2*L1/CNST31),(2*((L1)+(L2*(TD2)))/CNST31),2*L2/CNST31) # echo delay [µs]
     echo_delay *= 1000 # unit [=] ms
+    echo_delay_interp = np.linspace(0, echo_delay[-1],100)
+    y = y[:TD2]
 
     expT2_1 = 0.1*max(echo_delay)
     expT2_2 = 0.05*max(echo_delay)
@@ -1401,7 +1400,7 @@ def T2_Fit(y, exp_params, stretch = False, biexp = False):
     # Run Model
     T2_decay_fit = fmodel.fit(y,params,echo_delay=echo_delay)
     # DiffBiExpFit = fmodel.fit(y,params,B=B, weights=np.divide(y,1), scale_covar=True)
-    y_interp = T2_decay_fit.model.func(echo_delay, **T2_decay_fit.best_values)
+    y_interp = T2_decay_fit.model.func(echo_delay_interp, **T2_decay_fit.best_values)
     model_fits = T2_decay_fit.fit_report()
     
     T2_1 = T2_decay_fit.best_values["T2_1"]
@@ -1419,18 +1418,18 @@ def T2_Fit(y, exp_params, stretch = False, biexp = False):
     fig,ax = plt.subplots()
 
     ax.plot(echo_delay, y, 'o', color='black', label="Experimental Data")
-    ax.plot(echo_delay, y_interp, '--', color='teal', label="Fit")
+    ax.plot(echo_delay_interp, y_interp, '--', color='teal', label="Fit")
     ax.set_xlabel('Echo delay / ms')
     ax.set_ylabel('Normalized intensity')
     ax.legend(loc="right")
     plt.show()
     
     if not(biexp):
-        display("T2_1 = "+str(T2_1)+" ms","beta = "+str(beta1))
+        display("T2_1 = "+str(T2_1)+" ms","beta = "+str(beta1),'\u03B4 = '+str(y.name)+" ppm")
         results = {"T2":T2_1, "beta":beta1}
     else:
-        display("w1 = "+str(w1), "T2_1 = "+str(T2_1)+" ms","beta = "+str(beta1))
-        display("w2 = "+str(w2), "T2_2 = "+str(T2_2)+" ms","beta = "+str(beta2))
+        display("w1 = "+str(w1), "T2_1 = "+str(T2_1)+" ms","beta = "+str(beta1),'\u03B4 = '+str(y.name)+" ppm")
+        display("w2 = "+str(w2), "T2_2 = "+str(T2_2)+" ms","beta = "+str(beta2),'\u03B4 = '+str(y.name)+" ppm")
         results = {"w1":w1, "T2_1":T2_1, "beta_1":beta1, "w2":w2, "T2_2":T2_2, "beta_2":beta2}
     return results
 
