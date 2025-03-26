@@ -33,7 +33,7 @@ params = {'legend.fontsize': 'large',
         'axes.labelweight': 'normal',
         'axes.linewidth': 2,
         'axes.titlepad': 25}
-plt.rcParams.update(params)
+# plt.rcParams.update(params)
 
 def NUC_label(NUC, alt_label = 'on', x_unit='ppm'):
     """
@@ -180,7 +180,9 @@ def NMR1Dimport(datapath, procno=1, mass=1, f1p=0, f2p=0):
 
     return results
 
-def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwidth=8, plheight=8, normalize=False, yOffset = 0.2, font='Tahoma', fontsize=24, frame=True, alt_label='off', x_unit = 'ppm', output_format = '', linewidth=2, tickdir = 'default', field='', magrange=[0,0], mag=16):
+def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwidth=8, plheight=8, normalize=False, 
+              yOffset = 0.2, font='Tahoma', fontsize=24, frame=True, alt_label='off', x_unit = 'ppm', output_format = '', 
+              linewidth=2, tickdir = 'default', field='', magrange=[0,0], mag=16):
     """
     fig,ax = NMR1Dplot(datapaths, mass=[1], color = 'black', f1p=0, f2p=0, plwidth=8, plheight=8,normalize=False, yOffset = 0.2, font='Tahoma', fontsize=24, frame=True, alt_label='off', x_unit = 'ppm', output_format = "manuscript", tickdir = 'in', field='')
     
@@ -302,6 +304,8 @@ def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwi
         cmap = cl.LinearSegmentedColormap.from_list("", ["#FEBC11","#C9C891","#9BD2FF","#2474B3","#003660"])
     elif color == 'blues':
         cmap = cl.LinearSegmentedColormap.from_list("", ["#74a9cf","#3690c0","#0570b0","#045a8d","#023858"])
+    elif isinstance(color, list):
+            cmap = cl.LinearSegmentedColormap.from_list("", color)
     else:
         cmap = cl.LinearSegmentedColormap.from_list("", ["#000000","#000000","#000000","#000000"])
     scalarMap = cmx.ScalarMappable(norm=norm, cmap=cmap)
