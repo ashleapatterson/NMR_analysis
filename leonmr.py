@@ -351,7 +351,8 @@ def NMR1Dplot(datapaths, mass=1, procno = 1, color = 'black', f1p=0, f2p=0, plwi
             xmag =  x[xlowi:xhighi]
             ymag =  np.multiply(y[xlowi:xhighi],mag)
             plt.plot(xmag, ymag, color=scalarMap.to_rgba(values[cnt]), linewidth=linewidth)
-        yBase = yBase + max(y)*(1+yOffset)
+        # yBase = yBase + max(y)*(1+yOffset)
+        ybase += yOffset
         cnt+=1
 
     plt.xlabel(labeltext)
